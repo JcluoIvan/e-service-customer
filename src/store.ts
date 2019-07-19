@@ -83,7 +83,7 @@ const store = new Vuex.Store<IStore.State>({
     },
 });
 
-const eservice = new EService('http://127.0.0.1:3000/customer');
+const eservice = new EService('http://127.0.0.1:3000/es');
 
 eservice.on('connected', () => store.commit('waiting'));
 

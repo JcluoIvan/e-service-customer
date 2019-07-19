@@ -28,7 +28,7 @@ export default Vue.extend({
         },
     },
     mounted() {
-        actions.connect('', 'abcdefghijklmn');
+        actions.connect('', '王先生');
     },
     methods: {
         send() {
