@@ -11,23 +11,16 @@ interface EmitterEvents<T> {
 interface ListenerEvents<T> {
     (event: string | number, listener: (...args: any[]) => void): T;
     (event: 'connected' | 'disconnected', listener: ListenerHandle): T;
-    (event: 'message', listener: ListenerHandle<Message>): T;
-}
-
-export interface Message {
-    id: number;
-    content: string;
-    type: 'text' | 'image';
-    time: string;
+    (event: 'message', listener: ListenerHandle<ISK.ListenerData.Message>): T;
+    (event: 'token', listener: ListenerHandle<string>): T;
+    (event: 'start', listener: ListenerHandle<ISK.ListenerData.Center.Start>): T;
 }
 
 export default class EService extends EventEmitter {
     public on!: ListenerEvents<this>;
     private socket: SocketIOClient.Socket | null = null;
-    private token: string = 'dev-token';
 
     constructor(private host: string) {
-
         super();
     }
 
@@ -39,11 +32,18 @@ export default class EService extends EventEmitter {
         return this.socket;
     }
 
-    public connect(id: string, name: string) {
-        const token = this.token;
-        this.socket = sio(this.host, { query: { id, name, token } });
+    public connect(query: { id: string; name: string; token: string }) {
+        this.socket = sio(this.host, { query });
 
-        this.socket.on('center/send', (data) => {
+        this.socket.on('token', ({ token }) => {
+            this.emit('token', token);
+        });
+
+        this.socket.on('center/start', (res) => {
+            this.emit('start', res);
+        });
+
+        this.socket.on('center/message', (data) => {
             this.emit('message', data);
         });
 
@@ -57,8 +57,8 @@ export default class EService extends EventEmitter {
     }
 
     public send(content: string, type: 'text/plain' | 'image/jpeg' | 'image/png') {
-        return new Promise<{ id: number; time: number }>((resolve, reject) => {
-            const data: IES.EmitterData.CenterSend.Request = {
+        return new Promise<{ id: number; time: number; content: string }>((resolve, reject) => {
+            const data: ISK.EmitterData.Center.Send.Request = {
                 content,
                 type,
             };
@@ -69,6 +69,7 @@ export default class EService extends EventEmitter {
                 }
                 resolve({
                     id: res.data.id,
+                    content: res.data.content,
                     time: moment(res.data.time).valueOf(),
                 });
             });

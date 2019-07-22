@@ -1,44 +1,50 @@
 <template>
     <div class="home">
         <div class="status-panel">{{ status }}</div>
-        <div class="message-wrapper"></div>
-        <div class="message-list"></div>
-        <form class="send-form form-group row no-gutters" @submit.prevent="send">
-            <div class="col">
-                <textarea class="form-control" v-model="content"></textarea>
+        <div class="message-wrapper">
+            <div class="message-wrapper__content">
+                <dir v-for="msg in messages" :key="`${msg.id}-${msg.key}`">{{ msg.content }}</dir>
             </div>
-            <div class="col-auto">
-                <button class="btn btn-primary btn-block">Send</button>
-            </div>
-        </form>
+            <form
+                class="message-wrapper__footer form-group row no-gutters message-wrapper__footer"
+                @submit.prevent="send"
+            >
+                <div class="col">
+                    <textarea class="form-control input-content" v-model="input.message"></textarea>
+                </div>
+                <div class="col-auto">
+                    <button class="btn btn-primary btn-block send-message">Send</button>
+                </div>
+            </form>
+        </div>
     </div>
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import { Vue, Component } from 'vue-property-decorator';
 import store, { actions } from '../store';
-
-export default Vue.extend({
-    data: () => ({
-        content: '',
-    }),
-    computed: {
-        status() {
-            return store.state.status;
-        },
-    },
-    mounted() {
+@Component
+export default class Home extends Vue {
+    public input = {
+        message: '',
+    };
+    get status() {
+        return store.state.status;
+    }
+    get messages() {
+        return store.state.task.messages.sort((a, b) => a.time - b.time);
+    }
+    public mounted() {
         actions.connect('', '王先生');
-    },
-    methods: {
-        send() {
-            actions.sendMessage('hello');
-        },
-        upload() {
-            actions.uploadImage('', 'image/jpeg');
-        },
-    },
-});
+    }
+    public send() {
+        actions.sendMessage(this.input.message);
+        this.input.message = '';
+    }
+    public upload() {
+        actions.uploadImage('', 'image/jpeg');
+    }
+}
 </script>
 <style lang="scss" scoped>
 .home {
@@ -52,18 +58,29 @@ export default Vue.extend({
         height: 40px;
         flex: none;
     }
-    .message-list {
-        flex: 1;
-    }
-    .send-form {
-        flex: none;
-        height: 80px;
-        textarea {
-            height: 100%;
+    .message-wrapper {
+        position: relative;
+        height: 100%;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+
+        .message-wrapper__content {
+            flex: 1;
         }
-        button {
-            height: 100%;
-            padding: 0 20px;
+        .message-wrapper__footer {
+            flex: none;
+            height: 80px;
+            textarea.input-content {
+                height: 100%;
+                resize: none;
+                border-radius: 0.25rem 0 0 0.25rem;
+            }
+            button.send-message {
+                height: 100%;
+                padding: 0 20px;
+                border-radius: 0 0.25rem 0.25rem 0;
+            }
         }
     }
 }
