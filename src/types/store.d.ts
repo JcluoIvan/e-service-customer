@@ -9,7 +9,7 @@ declare namespace IStore {
         interface Message {
             id: number;
             /** 更新訊息使用 */
-            key: number;
+            sid: number;
             user: UserInfo;
             content: string;
             type: 'text' | 'image';
@@ -18,7 +18,6 @@ declare namespace IStore {
 
         interface Task {
             executive: UserInfo;
-            watchers: UserInfo[];
             messages: Message[];
             startAt: number;
             closedAt: number;
@@ -26,18 +25,18 @@ declare namespace IStore {
         }
 
         interface Send {
-            key: number;
+            sid: number;
             content: string;
             type: 'text' | 'image';
         }
         interface SendSuccess {
             id: number;
             content: string;
-            key: number;
+            sid: number;
             time: number;
         }
         interface SendFail {
-            key: number;
+            sid: number;
             message: string;
         }
     }
@@ -58,7 +57,7 @@ declare namespace IStore {
         (name: 'center/message', message: TaskCenter.Message): void;
         (name: 'center/send', data: TaskCenter.Send): void;
         (name: 'center/send-success', data: TaskCenter.SendSuccess): void;
-        (name: 'center/send-fail', data: TaskCenter.SendFail): void;
+        // (name: 'center/send-fail', data: TaskCenter.SendFail): void;
     }
 
     interface Mutations<S> {

@@ -5,17 +5,21 @@
             <div class="message-wrapper__content">
                 <dir v-for="msg in messages" :key="`${msg.id}-${msg.key}`">{{ msg.content }}</dir>
             </div>
-            <form
-                class="message-wrapper__footer form-group row no-gutters message-wrapper__footer"
-                @submit.prevent="send"
-            >
+            <div class="message-wrapper__footer form-group row no-gutters message-wrapper__footer">
                 <div class="col">
-                    <textarea class="form-control input-content" v-model="input.message"></textarea>
+                    <textarea
+                        class="form-control input-content"
+                        v-model="input.message"
+                        @keydown.enter.prevent="sendMessage"
+                    ></textarea>
                 </div>
                 <div class="col-auto">
-                    <button class="btn btn-primary btn-block send-message">Send</button>
+                    <button
+                        class="btn btn-primary btn-block send-message"
+                        @submit.prevent="sendMessage"
+                    >Send</button>
                 </div>
-            </form>
+            </div>
         </div>
     </div>
 </template>
@@ -37,7 +41,7 @@ export default class Home extends Vue {
     public mounted() {
         actions.connect('', '王先生');
     }
-    public send() {
+    public sendMessage() {
         actions.sendMessage(this.input.message);
         this.input.message = '';
     }

@@ -15,13 +15,12 @@ const mutations: IStore.Mutations<IStore.State> = {
     waiting(state) {
         state.status = 'waiting';
     },
-    token(state, token: string) {
+    token(state, token) {
         state.token = token;
         localStorage.setItem('ctoken', token);
     },
     'center/start'(state, data: IES.Center.Task) {
         state.status = 'start';
-        console.info(data);
         Object.assign(state.task, data);
     },
     'center/message'(state, message) {
@@ -47,8 +46,7 @@ const mutations: IStore.Mutations<IStore.State> = {
         console.info(state.task.messages);
     },
     'center/send-success'(state, data) {
-        console.error(data);
-        const msg = state.task.messages.find((t) => t.key === data.key);
+        const msg = state.task.messages.find((t) => t.sid === data.sid);
         if (!msg) {
             return;
         }
@@ -70,7 +68,6 @@ const store = new Vuex.Store<IStore.State>({
         task: {
             messages: [],
             executive: { id: 0, name: '', imageUrl: '' },
-            watchers: [],
             startAt: 0,
             closedAt: 0,
             createdAt: 0,
@@ -92,12 +89,9 @@ eservice.on('disconnected', () => commit('disconnected'));
 eservice.on('start', (data) => {
     console.info('start', data);
     commit('center/start', {
+        ...data,
         executive: data.executive,
-        watchers: data.watchers,
-        messages: data.messages.map((m) => ({ ...m, key: 0 })),
-        startAt: data.startAt ? moment(data.startAt).valueOf() : 0,
-        closedAt: data.closedAt ? moment(data.closedAt).valueOf() : 0,
-        createdAt: moment(data.createdAt).valueOf(),
+        messages: data.messages.map((m) => ({ ...m, sid: 0 })),
     });
 });
 
@@ -108,7 +102,7 @@ eservice.on('message', (msg) => {
     }
     commit('center/message', {
         ...msg,
-        key: 0,
+        sid: 0,
         time: moment(msg.time).valueOf(),
     });
 });
@@ -119,9 +113,9 @@ export const actions = {
         eservice.connect({ id, name, token: store.state.token });
     },
     sendMessage(content: string) {
-        const key = ++CacheSendID;
+        const sid = ++CacheSendID;
         const send: IStore.TaskCenter.Send = {
-            key,
+            sid,
             content,
             type: 'text',
         };
@@ -130,15 +124,15 @@ export const actions = {
         eservice.send(content, 'text/plain').then((res) => {
             commit('center/send-success', {
                 ...res,
-                key,
+                sid,
                 time: moment(res.time).valueOf(),
             });
         });
     },
     uploadImage(base64: string, ext: 'image/jpeg' | 'image/png') {
-        const key = ++CacheSendID;
+        const sid = ++CacheSendID;
         const send: IStore.TaskCenter.Send = {
-            key,
+            sid,
             content: base64,
             type: 'image',
         };
@@ -146,7 +140,7 @@ export const actions = {
         eservice.send(base64, ext).then((res) => {
             commit('center/send-success', {
                 ...res,
-                key,
+                sid,
                 time: moment(res.time).valueOf(),
             });
         });

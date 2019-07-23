@@ -7,10 +7,7 @@ declare namespace IES {
     namespace Center {
         interface Message {
             id: number;
-            user: {
-                id: number;
-                name: string;
-            };
+            user: UserInfo;
             taskId: number;
             content: string;
             type: 'text' | 'image';
@@ -54,26 +51,14 @@ declare namespace ISK {
             time: number;
         }
         namespace Center {
-            interface Join {
-                taskId: number;
-                user: {
-                    id: number;
-                    name: string;
-                };
-            }
-            interface Leave {
-                taskId: number;
-                userId: number;
-            }
             interface Start {
                 id: number;
                 name: string;
                 executive: IES.UserInfo;
-                disconnectedAt: string | null;
-                startAt: string | null;
-                closedAt: string | null;
-                createdAt: string;
-                watchers: IES.UserInfo[];
+                disconnectedAt: number;
+                startAt: number;
+                closedAt: number;
+                createdAt: number;
                 messages: Message[];
             }
         }
@@ -88,10 +73,6 @@ declare namespace SocketIOClient {
         on(event: 'token', listener: ISK.ListenerHandle<{ token: string }>): boolean;
         /** 收到訊息 */
         on(event: 'center/message', listener: ISK.ListenerHandle<ISK.ListenerData.Message>): this;
-        /** 主管加入 */
-        on(event: 'center/join', listener: ISK.ListenerHandle<ISK.ListenerData.Center.Join>): this;
-        /** 主管離開 */
-        on(event: 'center/leave', listener: ISK.ListenerHandle<ISK.ListenerData.Center.Leave>): this;
 
         /** 加入房間, 專員開始服務 */
         on(event: 'center/start', listener: ISK.ListenerHandle): this;
