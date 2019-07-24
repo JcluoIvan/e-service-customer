@@ -5,7 +5,7 @@ import store from './store';
 import 'bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import '@/assets/material-icons/icon.scss';
-
+import './filter';
 Vue.config.productionTip = false;
 
 Vue.config.devtools = true;

@@ -5,6 +5,12 @@
     "files.trimFinalNewlines": true,
     "files.insertFinalNewline": true,
     "html.format.wrapLineLength": 120,
-    "editor.rulers": [80, 120]
+    "editor.rulers": [80, 120],
+    "vetur.format.defaultFormatter.html": "js-beautify-html",
+    "vetur.format.defaultFormatterOptions": {
+        "js-beautify-html": {
+            "wrap_attributes": "force"
+        }
+    }
 
 }
