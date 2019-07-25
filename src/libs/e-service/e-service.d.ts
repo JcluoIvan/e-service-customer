@@ -36,7 +36,7 @@ declare namespace ISK {
                 interface Response {
                     id: number;
                     content: string;
-                    time: string;
+                    time: number;
                 }
             }
         }
@@ -51,13 +51,20 @@ declare namespace ISK {
             time: number;
         }
         namespace Center {
+            interface Task {
+                id: number;
+                name: string;
+                online: boolean;
+                executive: IES.UserInfo;
+                startAt: number;
+                createdAt: number;
+                messages: Message[];
+            }
             interface Start {
                 id: number;
                 name: string;
                 executive: IES.UserInfo;
-                disconnectedAt: number;
                 startAt: number;
-                closedAt: number;
                 createdAt: number;
                 messages: Message[];
             }
@@ -71,11 +78,14 @@ declare namespace SocketIOClient {
         on(event: 'disconnect'): boolean;
         /** 更新 token */
         on(event: 'token', listener: ISK.ListenerHandle<{ token: string }>): boolean;
-        /** 收到訊息 */
-        on(event: 'center/message', listener: ISK.ListenerHandle<ISK.ListenerData.Message>): this;
+
+        on(event: 'center/task', listener: ISK.ListenerHandle<ISK.ListenerData.Center.Task>): this;
 
         /** 加入房間, 專員開始服務 */
-        on(event: 'center/start', listener: ISK.ListenerHandle): this;
+        on(event: 'center/start', listener: ISK.ListenerHandle<ISK.ListenerData.Center.Start>): this;
+
+        /** 收到訊息 */
+        on(event: 'center/message', listener: ISK.ListenerHandle<ISK.ListenerData.Message>): this;
 
         emit(type: string | number, ...args: any[]): boolean;
         /** 傳送訊息 */

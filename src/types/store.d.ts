@@ -1,4 +1,15 @@
 declare namespace IStore {
+
+    interface State {
+        status: 'disconnected' | 'connecting' | 'connected';
+        customer: {
+            id: string;
+            name: string;
+        };
+        token: string;
+        task: TaskCenter.Task;
+    }
+
     interface UserInfo {
         id: number;
         name: string;
@@ -9,7 +20,7 @@ declare namespace IStore {
         interface Message {
             id: number;
             /** 更新訊息使用 */
-            sid: number;
+            sid?: number;
             user: UserInfo;
             content: string;
             type: 'text' | 'image';
@@ -20,7 +31,6 @@ declare namespace IStore {
             executive: UserInfo;
             messages: Message[];
             startAt: number;
-            closedAt: number;
             createdAt: number;
         }
 
@@ -41,30 +51,23 @@ declare namespace IStore {
         }
     }
 
-    interface State {
-        status: 'disconnected' | 'connecting' | 'waiting' | 'start';
-        customer: {
-            id: string;
-            name: string;
-        };
-        token: string;
-        task: TaskCenter.Task;
-    }
     interface Actions {
-        (name: 'disconnected' | 'connecting' | 'waiting'): void;
+        (name: 'disconnected' | 'connecting' | 'connected' | 'waiting'): void;
         (name: 'token', token: string): void;
+        (name: 'center/task', data: TaskCenter.Task): void;
         (name: 'center/start', data: TaskCenter.Task): void;
         (name: 'center/message', message: TaskCenter.Message): void;
         (name: 'center/send', data: TaskCenter.Send): void;
         (name: 'center/send-success', data: TaskCenter.SendSuccess): void;
-        // (name: 'center/send-fail', data: TaskCenter.SendFail): void;
+        (name: 'center/send-fail', data: TaskCenter.SendFail): void;
     }
 
     interface Mutations<S> {
         disconnected?: (state: S) => void;
         connecting?: (state: S) => void;
-        waiting?: (state: S) => void;
+        connected?: (state: S) => void;
         token?: (state: S, token: string) => void;
+        'center/task'?: (state: S, data: TaskCenter.Task) => void;
         'center/start'?: (state: S, data: TaskCenter.Task) => void;
         'center/message'?: (state: S, message: TaskCenter.Message) => void;
         'center/send'?: (state: S, data: TaskCenter.Send) => void;

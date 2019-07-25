@@ -1,7 +1,21 @@
 <template>
     <div class="home-component">
         <div class="chat-wrapper">
-            <div class="chat-wrapper__title">{{ executive.name }}</div>
+            <div class="chat-wrapper__title">
+                <div class="executive-panel"
+                    v-if="executive.id > 0">
+                    <div class="executive-panel__image">
+                        <img :src="executive.imageUrl"
+                            alt=""
+                            v-if="executive.imageUrl">
+                        <object :data="icons.service"
+                            v-else></object>
+                    </div>
+                    <label class='executive-panel__name'>
+                        {{ executive.name }}
+                    </label>
+                </div>
+            </div>
             <div class="chat-wrapper__messages">
                 <div class="message-content"
                     ref="messageContent">
@@ -52,13 +66,23 @@
 </template>
 
 <script lang="ts">
-import { Vue, Component } from 'vue-property-decorator';
+import { Vue, Component, Watch } from 'vue-property-decorator';
 import store, { actions } from '../store';
+const serviceIcon = require('@/assets/icons/customer-service-svgrepo-com.svg');
 @Component
 export default class Home extends Vue {
+    public $refs!: {
+        messageContent: HTMLDivElement;
+    };
+
     public input = {
         message: '',
     };
+    get icons() {
+        return {
+            service: serviceIcon,
+        };
+    }
     get status() {
         return store.state.status;
     }
@@ -80,6 +104,12 @@ export default class Home extends Vue {
             .sort((a, b) => b.idSort - a.idSort || a.time - b.time);
     }
 
+    @Watch('messages', { immediate: true }) public watchMessages() {
+        this.$nextTick(() => {
+            this.$refs.messageContent.scrollTop = this.$refs.messageContent.scrollHeight;
+        });
+    }
+
     get executive() {
         return store.state.task.executive;
     }
@@ -87,8 +117,10 @@ export default class Home extends Vue {
         // actions.connect('', '王先生');
     }
     public sendMessage() {
-        actions.sendMessage(this.input.message);
-        this.input.message = '';
+        if (this.input.message) {
+            actions.sendMessage(this.input.message);
+            this.input.message = '';
+        }
     }
     public upload() {
         actions.uploadImage('', 'image/jpeg');
@@ -115,28 +147,34 @@ $borderColor: #999;
             flex: none;
             background: #20c4cb;
             color: #fff;
-            padding: 10px 20px;
             border-radius: 0.25rem 0.25rem 0 0;
             box-shadow: 3px 3px 3px 1px #999;
             z-index: 1;
             min-height: 30px;
 
-            .online-status {
-                padding: 1px;
-                border-radius: 2rem;
-                background: #fff;
-                &.online {
-                    color: #28a745;
+            .executive-panel {
+                padding: 5px 20px;
+                .executive-panel__image {
+                    position: relative;
+                    display: inline-block;
+                    vertical-align: middle;
+                    width: 30px;
+                    height: 30px;
+                    overflow: hidden;
+                    border-radius: 50%;
+                    border: 1px solid #fff;
+                    image,
+                    object {
+                        position: relative;
+                        width: 100%;
+                        height: 100%;
+                    }
                 }
-                &.offline {
-                    // color: #6c757d;
-                    color: #bbb;
-                    background: #eee;
+                .executive-panel__name {
+                    display: inline-block;
+                    vertical-align: middle;
+                    margin: 0 0 0 20px;
                 }
-            }
-
-            .leave-task-button {
-                float: right;
             }
         }
         .chat-wrapper__messages {

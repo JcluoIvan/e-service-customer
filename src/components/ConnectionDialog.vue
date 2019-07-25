@@ -1,68 +1,19 @@
 <template>
 
-    <!-- Modal -->
-    <div class="modal fade"
-        ref="dialog"
-        tabindex="-1"
-        role="dialog"
-        aria-labelledby="exampleModalLabel"
-        aria-hidden="true">
-        <div class="modal-dialog"
-            role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title"
-                        id="exampleModalLabel">
-                        ES 客服系統
-                    </h5>
-                </div>
-                <div class="modal-body">
-                    <div v-if="isWaiting">
-                        客服目前忙碌中... 請您耐心等待, 我們將立即為您服務。
-                    </div>
-                    <form @submit.prevent="connect"
-                        v-else>
-                        <h6>請問我們該怎麼稱呼您？</h6>
-                        <div class="form-group row align-items-center">
-                            <div class="col">
-                                <input type="text"
-                                    ref="name"
-                                    class="form-control"
-                                    v-model="input.name">
-                            </div>
-                            <div class="col-auto">
-                                <div class="form-check form-check-inline">
-                                    <input class="form-check-input"
-                                        type="radio"
-                                        name="inlineRadioOptions"
-                                        v-model="input.gender"
-                                        id="gender-male"
-                                        value="先生">
-                                    <label class="form-check-label"
-                                        for="gender-male">先生</label>
-                                </div>
-                                <div class="form-check form-check-inline">
-                                    <input class="form-check-input"
-                                        type="radio"
-                                        name="inlineRadioOptions"
-                                        id="gender-female"
-                                        v-model="input.gender"
-                                        value="小姐">
-                                    <label class="form-check-label"
-                                        for="gender-female">小姐</label>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="form-group row">
-                            <div class="col"></div>
-                            <div class="col-auto">
-                                <button class="btn btn-primary">確定</button>
-                            </div>
-                        </div>
-                    </form>
-                </div>
+    <div class="connection-dialog-component"
+        :class="{visible}">
+
+        <div class="dialog-content">
+            <h5>
+                ES 客服系統
+            </h5>
+            <hr>
+            <div v-if="isWaiting">
+                客服目前忙碌中... 請您耐心等待, 我們將立即為您服務。
             </div>
+
         </div>
+
     </div>
 </template>
 <script lang="ts">
@@ -72,50 +23,27 @@ import store, { actions } from '../store';
 @Component
 export default class ConnectionDialog extends Vue {
     public $refs!: {
-        dialog: HTMLDivElement;
         name: HTMLInputElement;
     };
     public input = {
         name: 'Guest',
-        gender: '先生',
+        gender: '',
     };
 
-    public $dialog!: JQuery<HTMLDivElement>;
+    get isWaiting() {
+        return store.state.task.executive.id === 0;
+    }
+
+    get visible() {
+        return store.state.status !== 'connected' || this.isWaiting;
+    }
 
     get id() {
         return (this.$route.query.id || '').toString();
     }
-
-    get isWaiting() {
-        return store.state.status === 'waiting';
-    }
-
-    get isStart() {
-        return store.state.status === 'start';
-    }
-
-    @Watch('isStart', { immediate: true }) public watchIsStart(start: boolean) {
-        if (start) {
-            this.close();
-        }
-    }
-
     public mounted() {
-        this.$dialog = $(this.$refs.dialog);
-        this.$dialog.on('shown.bs.modal', () => {
-            this.$refs.name.select();
-        });
+        this.connect();
     }
-    public open() {
-        this.$dialog.modal({
-            backdrop: 'static',
-        });
-    }
-
-    public close() {
-        this.$dialog.modal('hide');
-    }
-
     public connect() {
         const name = `${this.input.name}. ${this.input.gender}`;
         console.info('connect');
@@ -125,3 +53,34 @@ export default class ConnectionDialog extends Vue {
     }
 }
 </script>
+
+<style lang="scss" scoped>
+.connection-dialog-component {
+    z-index: 100;
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    left: 0;
+    top: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: none;
+
+    .dialog-content {
+        position: relative;
+        background: #fff;
+        width: 80%;
+        padding: 40px;
+        margin: auto;
+        top: 40%;
+        transform: translateY(-100%);
+        transition: 150ms;
+    }
+
+    &.visible {
+        display: block;
+        .dialog-content {
+            transform: translateY(-50%);
+        }
+    }
+}
+</style>

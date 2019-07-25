@@ -17,9 +17,6 @@ export default class App extends Vue {
         dialog: ConnectionDialog;
     };
 
-    public mounted() {
-        this.$refs.dialog.open();
-    }
 }
 </script>
 

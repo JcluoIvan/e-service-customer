@@ -1,7 +1,7 @@
 import Vue from 'vue';
 import Vuex from 'vuex';
-import EService from '@/libs/e-service';
 import moment from 'moment';
+import sio from 'socket.io-client';
 
 Vue.use(Vuex);
 
@@ -12,15 +12,17 @@ const mutations: IStore.Mutations<IStore.State> = {
     connecting(state) {
         state.status = 'connecting';
     },
-    waiting(state) {
-        state.status = 'waiting';
+    connected(state) {
+        state.status = 'connected';
     },
     token(state, token) {
         state.token = token;
         localStorage.setItem('ctoken', token);
     },
-    'center/start'(state, data: IES.Center.Task) {
-        state.status = 'start';
+    'center/task'(state, data) {
+        Object.assign(state.task, data);
+    },
+    'center/start'(state, data) {
         Object.assign(state.task, data);
     },
     'center/message'(state, message) {
@@ -69,7 +71,6 @@ const store = new Vuex.Store<IStore.State>({
             messages: [],
             executive: { id: 0, name: '', imageUrl: '' },
             startAt: 0,
-            closedAt: 0,
             createdAt: 0,
         },
     },
@@ -77,40 +78,52 @@ const store = new Vuex.Store<IStore.State>({
 });
 
 const commit: IStore.Actions = (name: string, data?: any) => store.commit(name, data);
+let socket: SocketIOClient.Socket | null = null;
+const reconnect = (url: string, query: { id: string; name: string; token?: string }) => {
+    query.token = query.token || localStorage.getItem('ctoken') || '';
+    socket = sio(url, { query });
 
-const eservice = new EService('http://127.0.0.1:3000/es');
+    socket.on('token', ({ token }) => commit('token', token));
 
-eservice.on('token', (token) => commit('token', token));
+    socket.on('connect', () => commit('connected'));
 
-eservice.on('connected', () => commit('waiting'));
+    socket.on('disconnect', () => commit('disconnected'));
 
-eservice.on('disconnected', () => commit('disconnected'));
+    socket.on('center/task', (res) => commit('center/task', res));
 
-eservice.on('start', (data) => {
-    console.info('start', data);
-    commit('center/start', {
-        ...data,
-        executive: data.executive,
-        messages: data.messages.map((m) => ({ ...m, sid: 0 })),
+    socket.on('center/start', (data) => {
+        console.info('start', data);
+        commit('center/start', {
+            ...data,
+            executive: data.executive,
+            messages: data.messages.map((m) => ({ ...m, sid: 0 })),
+        });
     });
-});
 
-eservice.on('message', (msg) => {
-    console.info(msg);
-    if (!msg.user.id) {
-        return;
+    socket.on('center/message', (msg) => {
+        console.info(msg);
+        if (!msg.user.id) {
+            return;
+        }
+        commit('center/message', {
+            ...msg,
+            sid: 0,
+            time: moment(msg.time).valueOf(),
+        });
+    });
+};
+
+const client = () => {
+    if (!socket || socket.disconnected) {
+        throw new Error('socket disconnected');
     }
-    commit('center/message', {
-        ...msg,
-        sid: 0,
-        time: moment(msg.time).valueOf(),
-    });
-});
+    return socket;
+};
 
 let CacheSendID = 0;
 export const actions = {
     connect(id: string, name: string) {
-        eservice.connect({ id, name, token: store.state.token });
+        reconnect('http://127.0.0.1:3000/es', { id, name });
     },
     sendMessage(content: string) {
         const sid = ++CacheSendID;
@@ -119,15 +132,20 @@ export const actions = {
             content,
             type: 'text',
         };
-        commit('center/send', send);
-
-        eservice.send(content, 'text/plain').then((res) => {
-            commit('center/send-success', {
-                ...res,
+        const data: ISK.EmitterData.Center.Send.Request = {
+            content,
+            type: 'text/plain',
+        };
+        client().emit('center/send', data, (res) => {
+            const doneRes: IStore.TaskCenter.SendSuccess = {
                 sid,
-                time: moment(res.time).valueOf(),
-            });
+                id: res.data.id,
+                content: res.data.content,
+                time: res.data.time,
+            };
+            commit('center/send-success', doneRes);
         });
+        commit('center/send', send);
     },
     uploadImage(base64: string, ext: 'image/jpeg' | 'image/png') {
         const sid = ++CacheSendID;
@@ -136,14 +154,27 @@ export const actions = {
             content: base64,
             type: 'image',
         };
-        commit('center/send', send);
-        eservice.send(base64, ext).then((res) => {
-            commit('center/send-success', {
-                ...res,
+        const data: ISK.EmitterData.Center.Send.Request = {
+            content: base64,
+            type: ext,
+        };
+        client().emit('center/send', data, (res) => {
+            const doneRes: IStore.TaskCenter.SendSuccess = {
                 sid,
-                time: moment(res.time).valueOf(),
-            });
+                id: res.data.id,
+                content: res.data.content,
+                time: res.data.time,
+            };
+            commit('center/send-success', doneRes);
         });
+        commit('center/send', send);
+        // eservice.send(base64, ext).then((res) => {
+        //     commit('center/send-success', {
+        //         ...res,
+        //         sid,
+        //         time: moment(res.time).valueOf(),
+        //     });
+        // });
     },
 };
 
