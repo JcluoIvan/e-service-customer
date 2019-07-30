@@ -1,5 +1,4 @@
 declare namespace IStore {
-
     interface State {
         status: 'disconnected' | 'connecting' | 'connected';
         customer: {
@@ -56,6 +55,7 @@ declare namespace IStore {
         (name: 'token', token: string): void;
         (name: 'center/task', data: TaskCenter.Task): void;
         (name: 'center/start', data: TaskCenter.Task): void;
+        (name: 'center/waiting'): void;
         (name: 'center/message', message: TaskCenter.Message): void;
         (name: 'center/send', data: TaskCenter.Send): void;
         (name: 'center/send-success', data: TaskCenter.SendSuccess): void;
@@ -67,6 +67,7 @@ declare namespace IStore {
         connecting?: (state: S) => void;
         connected?: (state: S) => void;
         token?: (state: S, token: string) => void;
+        'center/waiting'?: (state: S) => void;
         'center/task'?: (state: S, data: TaskCenter.Task) => void;
         'center/start'?: (state: S, data: TaskCenter.Task) => void;
         'center/message'?: (state: S, message: TaskCenter.Message) => void;

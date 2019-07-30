@@ -83,6 +83,7 @@ declare namespace SocketIOClient {
 
         /** 加入房間, 專員開始服務 */
         on(event: 'center/start', listener: ISK.ListenerHandle<ISK.ListenerData.Center.Start>): this;
+        on(event: 'center/waiting', listener: ISK.ListenerHandle): this;
 
         /** 收到訊息 */
         on(event: 'center/message', listener: ISK.ListenerHandle<ISK.ListenerData.Message>): this;

@@ -25,6 +25,13 @@ const mutations: IStore.Mutations<IStore.State> = {
     'center/start'(state, data) {
         Object.assign(state.task, data);
     },
+    'center/waiting'(state) {
+        state.task.executive.id = 0;
+        state.task.executive.imageUrl = '';
+        state.task.executive.name = '';
+        state.task.messages = [];
+        state.task.startAt = 0;
+    },
     'center/message'(state, message) {
         const exists = (message.id && state.task.messages.find((m) => m.id === message.id)) || null;
 
@@ -91,6 +98,8 @@ const reconnect = (url: string, query: { id: string; name: string; token?: strin
 
     socket.on('center/task', (res) => commit('center/task', res));
 
+    socket.on('center/waiting', () => commit('center/waiting'));
+
     socket.on('center/start', (data) => {
         console.info('start', data);
         commit('center/start', {
@@ -147,7 +156,7 @@ export const actions = {
         });
         commit('center/send', send);
     },
-    uploadImage(base64: string, ext: 'image/jpeg' | 'image/png') {
+    sendImage(base64: string, ext: 'image/jpeg' | 'image/png') {
         const sid = ++CacheSendID;
         const send: IStore.TaskCenter.Send = {
             sid,

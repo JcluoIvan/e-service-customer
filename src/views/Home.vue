@@ -16,7 +16,9 @@
                     </label>
                 </div>
             </div>
-            <div class="chat-wrapper__messages">
+            <div class="chat-wrapper__messages"
+                :class="{drag: drag}"
+                @dragenter.prevent.stop="onDragEnter">
                 <div class="message-content"
                     ref="messageContent">
                     <div class="message-cell"
@@ -40,23 +42,62 @@
                                 </div>
                                 <label class="image-wrapper__name">{{ msg.speakerName }}</label>
                             </div>
-                            <div class="message-cell__content">{{ msg.content }}</div>
+                            <a class="message-cell__content_image"
+                                target="_blank"
+                                :href="msg.content"
+                                v-if="msg.type ==='image'">
+                                <img :src="msg.content | thum"
+                                    @load="toScrollBottom(true)" />
+                            </a>
+                            <div class="message-cell__content"
+                                v-else
+                                v-html="toHtml(msg.content)"></div>
                             <small class="message-cell__time">{{ msg.time | dt('HH:mm') }}</small>
                         </div>
                     </div>
                 </div>
+                <div class="drag-upload-panel"
+                    ref="dropPanel"
+                    @dragleave.prevent.stop="onDragLeave"
+                    @dragover.prevent.stop
+                    @drop.prevent.stop="onDropFile"
+                    dropzone="copy">
+                    <i class="upload-image-icon material-icons">photo</i>
+                </div>
             </div>
             <form @submit.prevent
                 class="form-group mb-0 chat-wrapper__footer">
+                <div class="options-panel row no-gutters">
+                    <div class="col">
+                        <button class="options-item emoji-icons">
+                            🙂
+                            <div class="emoji-list-panel">
+                                <EmojiList @select="onSelectEmoji" />
+                            </div>
+                        </button>
+                        <button class="options-item"
+                            @click="$refs.inputFile.click()">
+                            <i class=" material-icons">image</i>
+                        </button>
+                        <input type="file"
+                            ref="inputFile"
+                            accept=".jpg,.jpeg,.png"
+                            class="upload-image-input"
+                            @change="onUploadFile" />
+                    </div>
+                </div>
                 <div class="input-panel row no-gutters">
                     <div class="col input-panel__textarea-wrapper">
                         <textarea class="form-control"
                             ref="textarea"
                             v-model="input.message"
-                            @keydown.enter.exact.prevent="sendMessage"></textarea>
+                            :disabled="disabledTextarea"
+                            @keydown.exact="onTextareaKeyDown"
+                            @keydown.shift.186.exact="onInputEmoji"></textarea>
                     </div>
                     <div class="col-auto">
-                        <button class="btn btn-primary"
+                        <button class="btn btn-primary send-button"
+                            :disabled="disabledSubmit"
                             @click.prevent="sendMessage">Send</button>
                     </div>
                 </div>
@@ -68,16 +109,34 @@
 <script lang="ts">
 import { Vue, Component, Watch } from 'vue-property-decorator';
 import store, { actions } from '../store';
+import emojis, { EmojiItem } from '@/support/emojis';
+import EmojiList from '../components/EmojiList.vue';
+
 const serviceIcon = require('@/assets/icons/customer-service-svgrepo-com.svg');
-@Component
+@Component({
+    filters: {
+        thum(url: string) {
+            const arr = url.split('.');
+            const ext = arr.pop();
+            return `${arr.join('.')}.min.${ext}`;
+        },
+    },
+    components: {
+        EmojiList,
+    },
+})
 export default class Home extends Vue {
     public $refs!: {
         messageContent: HTMLDivElement;
+        textarea: HTMLTextAreaElement;
     };
 
     public input = {
         message: '',
     };
+
+    public drag = false;
+
     get icons() {
         return {
             service: serviceIcon,
@@ -104,26 +163,105 @@ export default class Home extends Vue {
             .sort((a, b) => b.idSort - a.idSort || a.time - b.time);
     }
 
-    @Watch('messages', { immediate: true }) public watchMessages() {
-        this.$nextTick(() => {
-            this.$refs.messageContent.scrollTop = this.$refs.messageContent.scrollHeight;
-        });
+    get isStart() {
+        return store.state.task.executive.id > 0;
     }
 
+    get disabledTextarea() {
+        return this.isStart;
+    }
+
+    get disabledSubmit() {
+        const { message } = this.input;
+        return this.isStart || !message;
+    }
     get executive() {
         return store.state.task.executive;
     }
     public mounted() {
         // actions.connect('', '王先生');
     }
+
+    @Watch('messages', { immediate: true }) public watchMessages() {
+        this.$nextTick(() => {
+            this.$refs.messageContent.scrollTop = this.$refs.messageContent.scrollHeight;
+        });
+    }
+
+    public toHtml(content: string) {
+        // return content;
+        return content.replace(/(https?\:\/\/[^ ]+)/g, '<a target="_blank" href="$1">$1</a>');
+    }
+
     public sendMessage() {
         if (this.input.message) {
             actions.sendMessage(this.input.message);
             this.input.message = '';
         }
     }
-    public upload() {
-        actions.uploadImage('', 'image/jpeg');
+
+    public onSelectEmoji(item: EmojiItem) {
+        const textarea = this.$refs.textarea;
+        const message = this.input.message;
+        const end = textarea.selectionEnd;
+        const start = textarea.selectionStart;
+        this.input.message = `${message.substr(0, start)}${item.emoji}${message.substr(end)}`;
+        textarea.setSelectionRange(textarea.selectionEnd, textarea.selectionEnd);
+        setTimeout(() => {
+            textarea.focus();
+        }, 0);
+    }
+
+    public toScrollBottom(nextTick = false) {
+        if (nextTick) {
+            this.$nextTick(() => {
+                this.$refs.messageContent.scrollTop = this.$refs.messageContent.scrollHeight;
+            });
+        } else {
+            this.$refs.messageContent.scrollTop = this.$refs.messageContent.scrollHeight;
+        }
+    }
+
+    public onDragEnter(event: DragEvent) {
+        if (event.dataTransfer && event.dataTransfer.types && event.dataTransfer.types[0] === 'Files') {
+            this.drag = true;
+        }
+    }
+    public onDragLeave(event: DragEvent) {
+        this.drag = false;
+    }
+    public onDropFile(event: DragEvent) {
+        const [file] = (event.dataTransfer && event.dataTransfer.files) || [null];
+        this.drag = false;
+
+        if (!file) {
+            return;
+        }
+        this.uploadImage(file);
+    }
+    public onUploadFile(event: any) {
+        const [file = null] = event.target.files || [];
+        if (!file) {
+            return;
+        }
+        this.uploadImage(file);
+    }
+
+    public uploadImage(file: File) {
+        if (file.type !== 'image/jpeg' && file.type !== 'image/png') {
+            console.error(`error type > ${file.type}`);
+            return;
+        }
+        const fileType = file.type;
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            if (reader.result) {
+                actions.sendImage(reader.result.toString(), fileType);
+            } else {
+                console.error(`empty data`, reader.result);
+            }
+        };
+        reader.readAsDataURL(file);
     }
 }
 </script>
@@ -141,6 +279,7 @@ $borderColor: #999;
         overflow: hidden;
         border-radius: 0.25rem;
         box-shadow: 0.25rem 0.25rem 0.5rem 0 #ccc;
+        border: 1px solid #bbb;
 
         .chat-wrapper__title {
             position: relative;
@@ -183,8 +322,6 @@ $borderColor: #999;
             display: inline-block;
             background: #eee;
             overflow: hidden;
-            border-left: 1px solid $borderColor;
-            border-right: 1px solid $borderColor;
             box-sizing: border-box;
             vertical-align: bottom;
 
@@ -210,7 +347,7 @@ $borderColor: #999;
                     padding-bottom: 18px;
                     display: flex;
 
-                    .message-cell__image {
+                    .message-cell__profile {
                         position: relative;
                         flex: none;
                         padding: 0 5px;
@@ -220,20 +357,20 @@ $borderColor: #999;
                             border: 1px solid #ccc;
                             border-radius: 50%;
                             overflow: hidden;
-
                             width: 40px;
                             height: 40px;
                         }
-                        .image-wrapper__image {
+                        .image-wrapper__profile {
                             position: relative;
                             width: 100%;
                         }
                         .image-wrapper__name {
                             position: absolute;
                             font-size: 0.8rem;
-                            text-align: center;
                             left: 0;
-                            width: 100%;
+                            min-width: 100%;
+                            text-align: center;
+                            white-space: nowrap;
                         }
                     }
                     .message-cell__content {
@@ -246,8 +383,20 @@ $borderColor: #999;
                         unicode-bidi: embed;
                         font-family: 'Microsoft JhengHei';
                         white-space: pre-wrap;
-                        word-wrap: break-word;
+                        word-break: break-all;
                         font-size: 1rem;
+                    }
+                    .message-cell__content_image {
+                        position: relative;
+                        box-sizing: border-box;
+                        flex: 1;
+                        border: 1px solid #ccc;
+                        border-radius: 5px;
+                        background: #fff;
+                        padding: 0.25rem;
+                        & img {
+                            width: 100%;
+                        }
                     }
                     .message-cell__time {
                         position: absolute;
@@ -261,45 +410,101 @@ $borderColor: #999;
                     justify-content: flex-end;
                 }
             }
-            // box-shadow: 3px 3px 3px 1px #555;
+            .drag-upload-panel {
+                position: absolute;
+                top: 0;
+                left: 0;
+                height: 100%;
+                width: 100%;
+                border: 10px dashed #333;
+                background: #aaa;
+                text-align: center;
+                opacity: 0.75;
+                display: none;
+                i.upload-image-icon {
+                    position: relative;
+                    top: 20%;
+                    width: 100%;
+                    text-align: center;
+                    font-size: 256px;
+                    pointer-events: none;
+                }
+            }
+
+            &.drag .drag-upload-panel {
+                display: block;
+            }
         }
         .chat-wrapper__footer {
             position: relative;
             flex: none;
             box-sizing: border-box;
-            border-left: 1px solid $borderColor;
-            border-right: 1px solid $borderColor;
-            border-bottom: 1px solid $borderColor;
-            border-radius: 0 0 0.25rem 0.25rem;
-            padding: 10px;
+            box-shadow: -3px 0px 3px 1px #ccc;
+            padding: 0 10px 10px 10px;
+
+            .options-panel {
+                padding-right: 60px;
+                .options-item {
+                    display: inline-block;
+                    background: #fff;
+                    border: 1px solid #ccc;
+                    text-align: center;
+                    line-height: 2rem;
+                    font-size: 1.2rem;
+                    padding: 0;
+                    border-radius: 3px;
+                    height: 2rem;
+                    width: 2rem;
+                    cursor: pointer;
+                    margin: 0;
+                    margin-right: 0.25rem;
+                    line-height: 1;
+
+                    &.emoji-icons {
+                        font-size: 0.9rem;
+                        .emoji-list-panel {
+                            cursor: default;
+                            text-align: left;
+                            position: absolute;
+                            z-index: 10;
+                            bottom: 2rem;
+                            display: none;
+                            &:hover {
+                                display: block;
+                            }
+                        }
+
+                        &:focus {
+                            .emoji-list-panel {
+                                display: block;
+                            }
+                        }
+                    }
+
+                    &:hover {
+                        background: #ddd;
+                    }
+                }
+
+                .upload-image-input {
+                    display: none;
+                }
+            }
             .input-panel {
                 position: relative;
                 width: 100%;
-                height: 100%;
                 .input-panel__textarea-wrapper {
                     position: relative;
-                    .datalist-panel {
-                        position: absolute;
-                        box-shadow: 3px 3px 3px 1px #ccc;
-                        bottom: 100%;
-                        margin-bottom: 5px;
-                        transform: scaleY(0);
-                        transform-origin: 0 100%;
-                        transition: 150ms;
-                        min-width: 120px;
-                        &.active {
-                            transform: scale(1);
-                        }
-                    }
                 }
 
                 textarea {
                     resize: none;
-                    border-radius: 0.25rem 0 0 0.25rem;
+                    border-radius: 5px 0 0 5px;
                 }
-                button {
-                    border-radius: 0 0.25rem 0.25rem 0;
+                button.send-button {
                     height: 100%;
+                    border-radius: 0 5px 5px 0;
+                    width: 60px;
                 }
             }
         }

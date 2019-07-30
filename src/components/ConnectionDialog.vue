@@ -8,7 +8,10 @@
                 ES 客服系統
             </h5>
             <hr>
-            <div v-if="isWaiting">
+            <dir v-if="!isConnected">
+                連線中斷...
+            </dir>
+            <div v-else-if="isWaiting">
                 客服目前忙碌中... 請您耐心等待, 我們將立即為您服務。
             </div>
 
@@ -34,13 +37,18 @@ export default class ConnectionDialog extends Vue {
         return store.state.task.executive.id === 0;
     }
 
+    get isConnected() {
+        return store.state.status === 'connected';
+    }
+
     get visible() {
-        return store.state.status !== 'connected' || this.isWaiting;
+        return !this.isConnected || this.isWaiting;
     }
 
     get id() {
         return (this.$route.query.id || '').toString();
     }
+
     public mounted() {
         this.connect();
     }

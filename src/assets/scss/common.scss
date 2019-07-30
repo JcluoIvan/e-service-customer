@@ -1,0 +1,32 @@
+$colors: (
+    primary: #007bff,
+    light-primary: #b8daff,
+    secondary: #6c757d,
+    light-secondary: #d6d8db,
+    success: #28a745,
+    light-success: #c3e6cb,
+    danger: #dc3545,
+    light-danger: #f1b0b7,
+    warning: #ffc107,
+    light-warning: #ffeeba,
+    info: #17a2b8,
+    light-info: #bee5eb,
+    light: #f8f9fa,
+    light-light: #fdfdfe,
+    dark: #343a40,
+    light-dark: #b9bbbe,
+);
+@function map-deep-get($map, $keys...) {
+    @each $key in $keys {
+        $map: map-get($map, $key);
+    }
+    @return $map;
+}
+@function color($key) {
+    @if map-has-key($colors, $key) {
+        @return map-get($colors, $key);
+    }
+
+    @warn "unknown `#{$key}` in $colors.";
+    @return null;
+}
