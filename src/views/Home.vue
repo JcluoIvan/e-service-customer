@@ -27,16 +27,16 @@
                         :class="msg.className">
                         <div class="message-cell__wrapper">
                             <div v-if="!msg.isSelf"
-                                class="message-cell__image">
+                                class="message-cell__profile">
                                 <div class="image-wrapper">
-                                    <img class="image-wrapper__image"
+                                    <img class="image-wrapper__profile"
                                         v-if="msg.user.imageUrl"
                                         :src="msg.user.imageUrl"
-                                        alt />
-                                    <object class="image-wrapper__image default-icon"
+                                        alt="">
+                                    <object class="image-wrapper__profile default-icon"
                                         v-else-if="msg.user.id"
                                         :data="icons.service"></object>
-                                    <object class="image-wrapper__image default-icon"
+                                    <object class="image-wrapper__profile default-icon"
                                         v-else
                                         :data="icons.customer"></object>
                                 </div>
@@ -92,8 +92,7 @@
                             ref="textarea"
                             v-model="input.message"
                             :disabled="disabledTextarea"
-                            @keydown.exact="onTextareaKeyDown"
-                            @keydown.shift.186.exact="onInputEmoji"></textarea>
+                            @keydown.enter.exact.prevent.stop="sendMessage"></textarea>
                     </div>
                     <div class="col-auto">
                         <button class="btn btn-primary send-button"
@@ -168,12 +167,12 @@ export default class Home extends Vue {
     }
 
     get disabledTextarea() {
-        return this.isStart;
+        return !this.isStart;
     }
 
     get disabledSubmit() {
         const { message } = this.input;
-        return this.isStart || !message;
+        return !this.isStart || !message;
     }
     get executive() {
         return store.state.task.executive;
@@ -189,8 +188,7 @@ export default class Home extends Vue {
     }
 
     public toHtml(content: string) {
-        // return content;
-        return content.replace(/(https?\:\/\/[^ ]+)/g, '<a target="_blank" href="$1">$1</a>');
+        return content.replace(/(https?\:\/\/[\w\.\p\-\/\?=&:#%]+)/g, '<a target="_blank" href="$1">$1</a>');
     }
 
     public sendMessage() {

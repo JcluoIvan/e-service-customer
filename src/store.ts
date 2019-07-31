@@ -110,7 +110,6 @@ const reconnect = (url: string, query: { id: string; name: string; token?: strin
     });
 
     socket.on('center/message', (msg) => {
-        console.info(msg);
         if (!msg.user.id) {
             return;
         }
@@ -132,7 +131,7 @@ const client = () => {
 let CacheSendID = 0;
 export const actions = {
     connect(id: string, name: string) {
-        reconnect('http://127.0.0.1:3000/es', { id, name });
+        reconnect('/es', { id, name });
     },
     sendMessage(content: string) {
         const sid = ++CacheSendID;
