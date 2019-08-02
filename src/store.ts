@@ -19,43 +19,43 @@ const mutations: IStore.Mutations<IStore.State> = {
         state.token = token;
         localStorage.setItem('ctoken', token);
     },
-    'center/task'(state, data) {
-        Object.assign(state.task, data);
+    'talks/talk'(state, data) {
+        Object.assign(state.talk, data);
     },
-    'center/start'(state, data) {
-        Object.assign(state.task, data);
+    'talks/start'(state, data) {
+        Object.assign(state.talk, data);
     },
-    'center/waiting'(state) {
-        state.task.executive.id = 0;
-        state.task.executive.imageUrl = '';
-        state.task.executive.name = '';
-        state.task.messages = [];
-        state.task.startAt = 0;
+    'talks/waiting'(state) {
+        state.talk.executive.id = 0;
+        state.talk.executive.imageUrl = '';
+        state.talk.executive.name = '';
+        state.talk.messages = [];
+        state.talk.startAt = 0;
     },
-    'center/message'(state, message) {
-        const exists = (message.id && state.task.messages.find((m) => m.id === message.id)) || null;
+    'talks/message'(state, message) {
+        const exists = (message.id && state.talk.messages.find((m) => m.id === message.id)) || null;
 
         if (exists) {
             Object.assign(exists, message);
         } else {
-            state.task.messages.push(message);
+            state.talk.messages.push(message);
             if (message.time) {
-                state.task.messages.sort((a, b) => a.time - b.time);
+                state.talk.messages.sort((a, b) => a.time - b.time);
             }
         }
     },
-    'center/send'(state, data) {
+    'talks/send'(state, data) {
         console.warn(data);
-        state.task.messages.push({
+        state.talk.messages.push({
             ...data,
             id: 0,
             user: { id: 0, name: '', imageUrl: '' },
             time: 0,
         });
-        console.info(state.task.messages);
+        console.info(state.talk.messages);
     },
-    'center/send-success'(state, data) {
-        const msg = state.task.messages.find((t) => t.sid === data.sid);
+    'talks/send-success'(state, data) {
+        const msg = state.talk.messages.find((t) => t.sid === data.sid);
         if (!msg) {
             return;
         }
@@ -74,7 +74,7 @@ const store = new Vuex.Store<IStore.State>({
             name: '',
         },
         token: localStorage.getItem('ctoken') || '',
-        task: {
+        talk: {
             messages: [],
             executive: { id: 0, name: '', imageUrl: '' },
             startAt: 0,
@@ -96,24 +96,24 @@ const reconnect = (url: string, query: { id: string; name: string; token?: strin
 
     socket.on('disconnect', () => commit('disconnected'));
 
-    socket.on('center/task', (res) => commit('center/task', res));
+    socket.on('talks/talk', (res) => commit('talks/talk', res));
 
-    socket.on('center/waiting', () => commit('center/waiting'));
+    socket.on('talks/waiting', () => commit('talks/waiting'));
 
-    socket.on('center/start', (data) => {
+    socket.on('talks/start', (data) => {
         console.info('start', data);
-        commit('center/start', {
+        commit('talks/start', {
             ...data,
             executive: data.executive,
             messages: data.messages.map((m) => ({ ...m, sid: 0 })),
         });
     });
 
-    socket.on('center/message', (msg) => {
+    socket.on('talks/message', (msg) => {
         if (!msg.user.id) {
             return;
         }
-        commit('center/message', {
+        commit('talks/message', {
             ...msg,
             sid: 0,
             time: moment(msg.time).valueOf(),
@@ -135,7 +135,7 @@ export const actions = {
     },
     sendMessage(content: string) {
         const sid = ++CacheSendID;
-        const send: IStore.TaskCenter.Send = {
+        const send: IStore.Talks.Send = {
             sid,
             content,
             type: 'text',
@@ -144,20 +144,20 @@ export const actions = {
             content,
             type: 'text/plain',
         };
-        client().emit('center/send', data, (res) => {
-            const doneRes: IStore.TaskCenter.SendSuccess = {
+        client().emit('talks/send', data, (res) => {
+            const doneRes: IStore.Talks.SendSuccess = {
                 sid,
                 id: res.data.id,
                 content: res.data.content,
                 time: res.data.time,
             };
-            commit('center/send-success', doneRes);
+            commit('talks/send-success', doneRes);
         });
-        commit('center/send', send);
+        commit('talks/send', send);
     },
     sendImage(base64: string, ext: 'image/jpeg' | 'image/png') {
         const sid = ++CacheSendID;
-        const send: IStore.TaskCenter.Send = {
+        const send: IStore.Talks.Send = {
             sid,
             content: base64,
             type: 'image',
@@ -166,23 +166,16 @@ export const actions = {
             content: base64,
             type: ext,
         };
-        client().emit('center/send', data, (res) => {
-            const doneRes: IStore.TaskCenter.SendSuccess = {
+        client().emit('talks/send', data, (res) => {
+            const doneRes: IStore.Talks.SendSuccess = {
                 sid,
                 id: res.data.id,
                 content: res.data.content,
                 time: res.data.time,
             };
-            commit('center/send-success', doneRes);
+            commit('talks/send-success', doneRes);
         });
-        commit('center/send', send);
-        // eservice.send(base64, ext).then((res) => {
-        //     commit('center/send-success', {
-        //         ...res,
-        //         sid,
-        //         time: moment(res.time).valueOf(),
-        //     });
-        // });
+        commit('talks/send', send);
     },
 };
 

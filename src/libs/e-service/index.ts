@@ -13,7 +13,7 @@ interface ListenerEvents<T> {
     (event: 'connected' | 'disconnected', listener: ListenerHandle): T;
     (event: 'message', listener: ListenerHandle<ISK.ListenerData.Message>): T;
     (event: 'token', listener: ListenerHandle<string>): T;
-    (event: 'start', listener: ListenerHandle<ISK.ListenerData.Center.Start>): T;
+    (event: 'start', listener: ListenerHandle<ISK.ListenerData.Talks.Start>): T;
 }
 
 export default class EService extends EventEmitter {

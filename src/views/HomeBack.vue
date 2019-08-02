@@ -1,5 +1,5 @@
 <template>
-    <div class="Home-Component">
+    <div class="home-component">
         <div class="chat-wrapper">
             <div class="chat-wrapper__title">
                 <div class="executive-panel"
@@ -265,7 +265,7 @@ export default class Home extends Vue {
 </script>
 <style lang="scss" scoped>
 $borderColor: #999;
-.Home-Component {
+.home-component {
     position: relative;
     padding: 1rem;
     height: 100%;

@@ -8,12 +8,11 @@ declare namespace IES {
         interface Message {
             id: number;
             user: UserInfo;
-            taskId: number;
+            talkId: number;
             content: string;
             type: 'text' | 'image';
             time: number;
         }
-        interface Task {}
     }
 }
 declare namespace ISK {
@@ -45,13 +44,13 @@ declare namespace ISK {
         interface Message {
             id: number;
             user: IES.UserInfo;
-            taskId: number;
+            talkId: number;
             content: string;
             type: 'text' | 'image';
             time: number;
         }
-        namespace Center {
-            interface Task {
+        namespace Talks {
+            interface Talk {
                 id: number;
                 name: string;
                 online: boolean;
@@ -79,19 +78,19 @@ declare namespace SocketIOClient {
         /** 更新 token */
         on(event: 'token', listener: ISK.ListenerHandle<{ token: string }>): boolean;
 
-        on(event: 'center/task', listener: ISK.ListenerHandle<ISK.ListenerData.Center.Task>): this;
+        on(event: 'talks/talk', listener: ISK.ListenerHandle<ISK.ListenerData.Talks.Talk>): this;
 
         /** 加入房間, 專員開始服務 */
-        on(event: 'center/start', listener: ISK.ListenerHandle<ISK.ListenerData.Center.Start>): this;
-        on(event: 'center/waiting', listener: ISK.ListenerHandle): this;
+        on(event: 'talks/start', listener: ISK.ListenerHandle<ISK.ListenerData.Talks.Start>): this;
+        on(event: 'talks/waiting', listener: ISK.ListenerHandle): this;
 
         /** 收到訊息 */
-        on(event: 'center/message', listener: ISK.ListenerHandle<ISK.ListenerData.Message>): this;
+        on(event: 'talks/message', listener: ISK.ListenerHandle<ISK.ListenerData.Message>): this;
 
         emit(type: string | number, ...args: any[]): boolean;
         /** 傳送訊息 */
         emit(
-            event: 'center/send',
+            event: 'talks/send',
             data: ISK.EmitterData.Center.Send.Request,
             response: (res: ISK.ResponseData<ISK.EmitterData.Center.Send.Response>) => void,
         ): boolean;

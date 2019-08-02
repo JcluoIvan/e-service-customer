@@ -34,7 +34,7 @@ export default class ConnectionDialog extends Vue {
     };
 
     get isWaiting() {
-        return store.state.task.executive.id === 0;
+        return store.state.talk.executive.id === 0;
     }
 
     get isConnected() {

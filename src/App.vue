@@ -1,7 +1,6 @@
 <template>
     <div id="app">
         <router-view />
-        <ConnectionDialog ref="dialog" />
     </div>
 </template>
 <script lang="ts">

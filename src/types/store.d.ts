@@ -6,7 +6,7 @@ declare namespace IStore {
             name: string;
         };
         token: string;
-        task: TaskCenter.Task;
+        talk: Talks.Talk;
     }
 
     interface UserInfo {
@@ -15,7 +15,7 @@ declare namespace IStore {
         imageUrl: string;
     }
 
-    namespace TaskCenter {
+    namespace Talks {
         interface Message {
             id: number;
             /** 更新訊息使用 */
@@ -26,7 +26,7 @@ declare namespace IStore {
             time: number;
         }
 
-        interface Task {
+        interface Talk {
             executive: UserInfo;
             messages: Message[];
             startAt: number;
@@ -53,13 +53,13 @@ declare namespace IStore {
     interface Actions {
         (name: 'disconnected' | 'connecting' | 'connected' | 'waiting'): void;
         (name: 'token', token: string): void;
-        (name: 'center/task', data: TaskCenter.Task): void;
-        (name: 'center/start', data: TaskCenter.Task): void;
-        (name: 'center/waiting'): void;
-        (name: 'center/message', message: TaskCenter.Message): void;
-        (name: 'center/send', data: TaskCenter.Send): void;
-        (name: 'center/send-success', data: TaskCenter.SendSuccess): void;
-        (name: 'center/send-fail', data: TaskCenter.SendFail): void;
+        (name: 'talks/talk', data: Talks.Talk): void;
+        (name: 'talks/start', data: Talks.Talk): void;
+        (name: 'talks/waiting'): void;
+        (name: 'talks/message', message: Talks.Message): void;
+        (name: 'talks/send', data: Talks.Send): void;
+        (name: 'talks/send-success', data: Talks.SendSuccess): void;
+        (name: 'talks/send-fail', data: Talks.SendFail): void;
     }
 
     interface Mutations<S> {
@@ -67,12 +67,12 @@ declare namespace IStore {
         connecting?: (state: S) => void;
         connected?: (state: S) => void;
         token?: (state: S, token: string) => void;
-        'center/waiting'?: (state: S) => void;
-        'center/task'?: (state: S, data: TaskCenter.Task) => void;
-        'center/start'?: (state: S, data: TaskCenter.Task) => void;
-        'center/message'?: (state: S, message: TaskCenter.Message) => void;
-        'center/send'?: (state: S, data: TaskCenter.Send) => void;
-        'center/send-success'?: (state: S, data: TaskCenter.SendSuccess) => void;
-        'center/send-fail'?: (state: S, data: TaskCenter.SendFail) => void;
+        'talks/waiting'?: (state: S) => void;
+        'talks/talk'?: (state: S, data: Talks.Talk) => void;
+        'talks/start'?: (state: S, data: Talks.Talk) => void;
+        'talks/message'?: (state: S, message: Talks.Message) => void;
+        'talks/send'?: (state: S, data: Talks.Send) => void;
+        'talks/send-success'?: (state: S, data: Talks.SendSuccess) => void;
+        'talks/send-fail'?: (state: S, data: Talks.SendFail) => void;
     }
 }
