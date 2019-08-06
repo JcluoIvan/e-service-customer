@@ -107,9 +107,10 @@
 
 <script lang="ts">
 import { Vue, Component, Watch } from 'vue-property-decorator';
-import store, { actions } from '../store';
+import store from '../store';
 import emojis, { EmojiItem } from '@/support/emojis';
 import EmojiList from '../components/EmojiList.vue';
+import { actions } from '../stores/actions';
 
 const serviceIcon = require('@/assets/icons/customer-service-svgrepo-com.svg');
 @Component({

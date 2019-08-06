@@ -4,15 +4,24 @@ declare namespace IES {
         name: string;
         imageUrl: string;
     }
-    namespace Center {
-        interface Message {
-            id: number;
-            user: UserInfo;
-            talkId: number;
-            content: string;
-            type: 'text' | 'image';
-            time: number;
-        }
+    interface Message {
+        id: number;
+        sid?: number;
+        user: UserInfo;
+        talkId: number;
+        content: string;
+        type: 'text' | 'image';
+        time: number;
+    }
+    interface Talk {
+        id: number;
+        name: string;
+        ip: string;
+        status: 'queue' | 'closed' | 'offline' | 'start';
+        executive: UserInfo;
+        messages: Message[];
+        startAt: number;
+        createdAt: number;
     }
 }
 declare namespace ISK {

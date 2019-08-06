@@ -39,11 +39,11 @@ export default class EService extends EventEmitter {
             this.emit('token', token);
         });
 
-        this.socket.on('center/start', (res) => {
+        this.socket.on('talks/start', (res) => {
             this.emit('start', res);
         });
 
-        this.socket.on('center/message', (data) => {
+        this.socket.on('talks/message', (data) => {
             this.emit('message', data);
         });
 
@@ -62,7 +62,7 @@ export default class EService extends EventEmitter {
                 content,
                 type,
             };
-            this.client.emit('center/send', data, (res) => {
+            this.client.emit('talks/send', data, (res) => {
                 if (res.code !== 0) {
                     reject(new Error(res.message));
                     return;

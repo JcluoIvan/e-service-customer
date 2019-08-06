@@ -1,22 +1,18 @@
 <template>
     <div id="app">
-        <router-view />
+        <Talk />
     </div>
 </template>
 <script lang="ts">
 import { Vue, Component } from 'vue-property-decorator';
-import ConnectionDialog from './components/ConnectionDialog.vue';
+import { actions } from '@/stores/actions';
+import Talk from './components/Talk.vue';
 @Component({
     components: {
-        ConnectionDialog,
+        Talk,
     },
 })
-export default class App extends Vue {
-    public $refs!: {
-        dialog: ConnectionDialog;
-    };
-
-}
+export default class App extends Vue {}
 </script>
 
 <style lang="scss">
