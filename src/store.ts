@@ -14,9 +14,9 @@ const mutations: IStore.Mutations<IStore.State> = {
     connected(state) {
         state.status = 'connected';
     },
-    token(state, token) {
-        state.token = token;
-        localStorage.setItem('ctoken', token);
+    'customer-key'(state, key) {
+        state.customer.key = key;
+        localStorage.setItem('c-key', key);
     },
     'talks/talk'(state, data) {
         Object.assign(state.talk, data);
@@ -49,6 +49,7 @@ const mutations: IStore.Mutations<IStore.State> = {
             ...data,
             id: 0,
             user: { id: 0, name: '', imageUrl: '' },
+            fromType: 'customer',
             time: 0,
         });
         console.info(state.talk.messages);
@@ -69,10 +70,9 @@ const store = new Vuex.Store<IStore.State>({
     state: {
         status: 'connecting',
         customer: {
-            id: '',
+            key: localStorage.getItem('c-key') || '',
             name: '',
         },
-        token: localStorage.getItem('ctoken') || '',
         talk: {
             messages: [],
             executive: { id: 0, name: '', imageUrl: '' },

@@ -24,32 +24,9 @@
                 </div>
                 <div class="message-list"
                     ref="messageList">
-                    <div class="message-cell"
-                        v-for="msg in messages"
-                        :key="msg.key"
-                        :class="msg.className">
-                        <div class="message-cell__wrapper">
-                            <div v-if="!msg.isSelf"
-                                class="message-cell__profile">
-                                <Profile :type="msg.user.id ? 'service' : 'customer'"
-                                    :url="msg.user.imageUrl"
-                                    size="medium" />
-                                <label class="message-cell__profile__name">{{ msg.speakerName }}</label>
-                            </div>
-                            <a class="message-cell__content_image"
-                                target="_blank"
-                                :href="msg.content"
-                                v-if="msg.type ==='image'">
-                                <img :src="msg.content | thum"
-                                    @load="toScrollBottom(true)" />
-                            </a>
-                            <div class="message-cell__content"
-                                v-else
-                                v-html="toHtml(msg.content)"></div>
-                            <small class="message-cell__time">{{ msg.time | dt('HH:mm') }}</small>
-                        </div>
-                    </div>
-
+                    <TalkMessage v-for="msg in messages"
+                        :key="`${msg.id}-${msg.sid}`"
+                        :message="msg" />
                 </div>
             </DropFileUpload>
             <div class="wrapper-footer"
@@ -98,6 +75,7 @@ import { EmojiItem } from '@/support/emojis';
 import SoundEffect from '@/components/SoundEffect.vue';
 import { actions } from '../stores/actions';
 import store from '../store';
+import TalkMessage from './TalkMessage.vue';
 const effects = {
     notification01: require('@/assets/sound-effect/Notification-01.wav'),
 };
@@ -115,6 +93,7 @@ const effects = {
         DropFileUpload,
         Profile,
         Emojis,
+        TalkMessage,
     },
 })
 export default class Talk extends Vue {
@@ -252,10 +231,6 @@ export default class Talk extends Vue {
             this.$refs.messageList.scrollTop = this.$refs.messageList.scrollHeight;
         }
     }
-
-    public toHtml(content: string) {
-        return content.replace(/(https?\:\/\/[\w\.\p\-\/\?=&:#%]+)/g, '<a target="_blank" href="$1">$1</a>');
-    }
 }
 </script>
 <style lang="scss" scoped>
@@ -302,74 +277,6 @@ export default class Talk extends Vue {
         overflow-x: hidden;
     }
 
-    .message-cell {
-        position: relative;
-        display: flex;
-        justify-content: flex-start;
-        width: 100%;
-        .message-cell__wrapper {
-            position: relative;
-            margin: 0.5rem;
-            max-width: 80%;
-            min-width: 40%;
-            padding-bottom: 18px;
-            display: flex;
-
-            .message-cell__profile {
-                position: relative;
-                flex: none;
-                padding: 0 5px;
-
-                .message-cell__profile__name {
-                    position: absolute;
-                    font-size: 0.8rem;
-                    left: 0;
-                    top: 48px;
-                    width: 100%;
-                    text-align: center;
-                    overflow: hidden;
-                    white-space: nowrap;
-                    text-overflow: ellipsis;
-                }
-            }
-            .message-cell__content {
-                box-sizing: border-box;
-                flex: 1;
-                border: 1px solid #ccc;
-                border-radius: 5px;
-                background: #fff;
-                padding: 0.5rem;
-                unicode-bidi: embed;
-                font-family: 'Microsoft JhengHei';
-                white-space: pre-wrap;
-                word-break: break-all;
-                font-size: 1rem;
-            }
-            .message-cell__content_image {
-                position: relative;
-                box-sizing: border-box;
-                flex: 1;
-                border: 1px solid #ccc;
-                border-radius: 5px;
-                background: #fff;
-                padding: 0.25rem;
-                text-align: center;
-                & img {
-                    width: 100%;
-                }
-            }
-            .message-cell__time {
-                position: absolute;
-                bottom: 0;
-                right: 4px;
-                font-family: monospace;
-            }
-        }
-
-        &.self-message {
-            justify-content: flex-end;
-        }
-    }
 }
 .wrapper-footer {
     border-top: 1px solid #ccc;

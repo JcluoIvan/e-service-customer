@@ -4,11 +4,11 @@ import moment from 'moment';
 
 const commit: IStore.Actions = (name: string, data?: any) => store.commit(name, data);
 let socket: SocketIOClient.Socket | null = null;
-const reconnect = (url: string, query: { id: string; name: string; token?: string }) => {
-    query.token = query.token || localStorage.getItem('ctoken') || '';
+const reconnect = (url: string, query: { key: string; name: string }) => {
+    query.key = query.key || store.state.customer.key || '';
     socket = sio(url, { query });
 
-    socket.on('token', ({ token }) => commit('token', token));
+    socket.on('customer-key', ({ key }) => commit('customer-key', key));
 
     socket.on('connect', () => commit('connected'));
 
@@ -28,7 +28,8 @@ const reconnect = (url: string, query: { id: string; name: string; token?: strin
     });
 
     socket.on('talks/message', (msg) => {
-        if (!msg.user.id) {
+        /* 訪客的訊息不處理 */
+        if (msg.fromType === 'customer') {
             return;
         }
         commit('talks/message', {
@@ -48,8 +49,8 @@ const client = () => {
 
 let CacheSendID = 0;
 export const actions = {
-    connect(id: string, name: string) {
-        reconnect('/es', { id, name });
+    connect(key: string, name: string) {
+        reconnect('/es', { key, name });
     },
     disconnect() {
         if (socket) {
@@ -67,6 +68,7 @@ export const actions = {
             content,
             type: 'text/plain',
         };
+        commit('talks/send', send);
         client().emit('talks/send', data, (res) => {
             const doneRes: IStore.Talks.SendSuccess = {
                 sid,
@@ -76,7 +78,6 @@ export const actions = {
             };
             commit('talks/send-success', doneRes);
         });
-        commit('talks/send', send);
     },
     sendImage(base64: string, ext: 'image/jpeg' | 'image/png') {
         const sid = ++CacheSendID;
@@ -89,6 +90,7 @@ export const actions = {
             content: base64,
             type: ext,
         };
+        commit('talks/send', send);
         client().emit('talks/send', data, (res) => {
             const doneRes: IStore.Talks.SendSuccess = {
                 sid,
@@ -98,6 +100,5 @@ export const actions = {
             };
             commit('talks/send-success', doneRes);
         });
-        commit('talks/send', send);
     },
 };

@@ -32,30 +32,6 @@ export default class EService extends EventEmitter {
         return this.socket;
     }
 
-    public connect(query: { id: string; name: string; token: string }) {
-        this.socket = sio(this.host, { query });
-
-        this.socket.on('token', ({ token }) => {
-            this.emit('token', token);
-        });
-
-        this.socket.on('talks/start', (res) => {
-            this.emit('start', res);
-        });
-
-        this.socket.on('talks/message', (data) => {
-            this.emit('message', data);
-        });
-
-        this.socket.on('connect', () => {
-            this.emit('connected');
-        });
-
-        this.socket.on('disconnect', () => {
-            this.emit('disconnected');
-        });
-    }
-
     public send(content: string, type: 'text/plain' | 'image/jpeg' | 'image/png') {
         return new Promise<{ id: number; time: number; content: string }>((resolve, reject) => {
             const data: ISK.EmitterData.Center.Send.Request = {

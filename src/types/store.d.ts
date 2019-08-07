@@ -2,10 +2,9 @@ declare namespace IStore {
     interface State {
         status: 'disconnected' | 'connecting' | 'connected';
         customer: {
-            id: string;
+            key: string;
             name: string;
         };
-        token: string;
         talk: Talks.Talk;
     }
 
@@ -23,6 +22,7 @@ declare namespace IStore {
             user: UserInfo;
             content: string;
             type: 'text' | 'image';
+            fromType: 'service' | 'customer' | 'system';
             time: number;
         }
 
@@ -52,7 +52,7 @@ declare namespace IStore {
 
     interface Actions {
         (name: 'disconnected' | 'connecting' | 'connected' | 'waiting'): void;
-        (name: 'token', token: string): void;
+        (name: 'customer-key', key: string): void;
         (name: 'talks/talk', data: Talks.Talk): void;
         (name: 'talks/start', data: Talks.Talk): void;
         (name: 'talks/waiting'): void;
@@ -66,7 +66,7 @@ declare namespace IStore {
         disconnected?: (state: S) => void;
         connecting?: (state: S) => void;
         connected?: (state: S) => void;
-        token?: (state: S, token: string) => void;
+        'customer-key'?: (state: S, key: string) => void;
         'talks/waiting'?: (state: S) => void;
         'talks/talk'?: (state: S, data: Talks.Talk) => void;
         'talks/start'?: (state: S, data: Talks.Talk) => void;

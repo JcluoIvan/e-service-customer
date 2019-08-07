@@ -8,6 +8,7 @@ declare namespace IES {
         id: number;
         sid?: number;
         user: UserInfo;
+        fromType: 'service' | 'customer' | 'system';
         talkId: number;
         content: string;
         type: 'text' | 'image';
@@ -17,7 +18,7 @@ declare namespace IES {
         id: number;
         name: string;
         ip: string;
-        status: 'queue' | 'closed' | 'offline' | 'start';
+        status: 'waiting' | 'closed' | 'offline' | 'start';
         executive: UserInfo;
         messages: Message[];
         startAt: number;
@@ -53,6 +54,7 @@ declare namespace ISK {
         interface Message {
             id: number;
             user: IES.UserInfo;
+            fromType: 'system' | 'customer' | 'service';
             talkId: number;
             content: string;
             type: 'text' | 'image';
@@ -84,8 +86,8 @@ declare namespace SocketIOClient {
     interface Socket {
         on(event: string | symbol, ...args: any[]): this;
         on(event: 'disconnect'): boolean;
-        /** 更新 token */
-        on(event: 'token', listener: ISK.ListenerHandle<{ token: string }>): boolean;
+        /** 更新 key */
+        on(event: 'customer-key', listener: ISK.ListenerHandle<{ key: string }>): boolean;
 
         on(event: 'talks/talk', listener: ISK.ListenerHandle<ISK.ListenerData.Talks.Talk>): this;
 
