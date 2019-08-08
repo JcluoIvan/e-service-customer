@@ -81,13 +81,6 @@ const effects = {
 };
 
 @Component({
-    filters: {
-        thum(url: string) {
-            const arr = url.split('.');
-            const ext = arr.pop();
-            return `${arr.join('.')}.min.${ext}`;
-        },
-    },
     components: {
         SoundEffect,
         DropFileUpload,

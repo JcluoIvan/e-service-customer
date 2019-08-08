@@ -45,6 +45,13 @@
 import { Vue, Component, Prop } from 'vue-property-decorator';
 import Profile from '@/components/Profile.vue';
 @Component({
+    filters: {
+        thum(url: string) {
+            const arr = url.split('.');
+            const ext = arr.pop();
+            return `${arr.join('.')}.min.${ext}`;
+        },
+    },
     components: {
         Profile,
     },
