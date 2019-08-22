@@ -23,7 +23,7 @@
                     v-if="isFromService">
                     <Profile :type="message.fromType"
                         :url="message.user.imageUrl"
-                        size="small" />
+                        size="medium" />
                     <label class="message-cell__profile__name">{{ message.speakerName }}</label>
                 </div>
                 <a class="message-cell__content_image"
@@ -106,7 +106,7 @@ export default class TalkMessage extends Vue {
                     position: absolute;
                     font-size: 0.8rem;
                     left: 0;
-                    top: 38px;
+                    top: 55px;
                     width: 100%;
                     text-align: center;
                     overflow: hidden;

@@ -94,6 +94,9 @@ export default class Profile extends Vue {
         width: 100%;
         height: 100%;
     }
+    img {
+        width: 100%;
+    }
 }
 .Profile-Component {
     &.size-large {
