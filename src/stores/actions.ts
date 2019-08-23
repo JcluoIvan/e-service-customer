@@ -83,7 +83,7 @@ export const actions = {
         const sid = ++CacheSendID;
         const send: IStore.Talks.Send = {
             sid,
-            content: base64,
+            content: '',
             type: 'image',
         };
         const data: ISK.EmitterData.Center.Send.Request = {

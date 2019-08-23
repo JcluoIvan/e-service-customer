@@ -26,7 +26,8 @@
                     ref="messageList">
                     <TalkMessage v-for="msg in messages"
                         :key="`${msg.id}-${msg.sid}`"
-                        :message="msg" />
+                        :message="msg"
+                        @img-load="toScrollBottom(true)" />
                 </div>
             </DropFileUpload>
             <div class="wrapper-footer"

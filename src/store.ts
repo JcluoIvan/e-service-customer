@@ -44,7 +44,6 @@ const mutations: IStore.Mutations<IStore.State> = {
         }
     },
     'talks/send'(state, data) {
-        console.warn(data);
         state.talk.messages.push({
             ...data,
             id: 0,
@@ -52,7 +51,6 @@ const mutations: IStore.Mutations<IStore.State> = {
             fromType: 'customer',
             time: 0,
         });
-        console.info(state.talk.messages);
     },
     'talks/send-success'(state, data) {
         const msg = state.talk.messages.find((t) => t.sid === data.sid);

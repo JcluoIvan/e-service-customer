@@ -31,7 +31,7 @@
                     :href="message.content"
                     v-if="message.type ==='image'">
                     <img :src="message.content | thum"
-                        @load="toScrollBottom(true)" />
+                        @load="onUpdated()" />
                 </a>
                 <div class="message-cell__content"
                     v-else
@@ -75,6 +75,10 @@ export default class TalkMessage extends Vue {
 
     get isFromService() {
         return this.message.fromType === 'service';
+    }
+
+    public onUpdated() {
+        this.$emit('img-load');
     }
 
     public toHtml(content: string) {
