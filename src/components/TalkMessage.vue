@@ -33,6 +33,11 @@
                     <img :src="message.content | thum"
                         @load="onUpdated()" />
                 </a>
+                <a class="message-cell__content_image"
+                    v-else-if="message.type ==='sticker'">
+                    <img :src="message.content"
+                        @load="onUpdated()" />
+                </a>
                 <div class="message-cell__content"
                     v-else
                     v-html="toHtml(message.content)"></div>
@@ -141,7 +146,7 @@ export default class TalkMessage extends Vue {
                 padding: 0.25rem;
                 text-align: center;
                 & img {
-                    width: 100%;
+                    max-width: 280px;
                 }
             }
             .message-cell__time {
